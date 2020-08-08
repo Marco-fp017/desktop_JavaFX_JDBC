@@ -32,7 +32,7 @@ public class MainViewController implements Initializable {
 	//metodos executados quando determinado campo da interface eh clicado
 	@FXML
 	public void onMenuItemDepartmentAction() {
-		System.out.println("menu item department");
+		loadView("/gui/DepartmentList.fxml");
 	}
 	
 	@FXML
