@@ -3,6 +3,7 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import application.Main;
 import gui.util.Alerts;
@@ -33,7 +34,11 @@ public class MainViewController implements Initializable {
 	//metodos executados quando determinado campo da interface eh clicado
 	@FXML
 	public void onMenuItemDepartmentAction() {
-		loadView2("/gui/DepartmentList.fxml");
+		//O loadView possui uma ArrowFunction (expressao lambda), para que cada especificacao possa ser feita diretamente na chamada do metodo.
+		loadView("/gui/DepartmentList.fxml", (DepartmentListController controller) -> {
+			controller.setDepartmentService(new DepartmentService());
+			controller.updateTableView();
+		});
 	}
 	
 	@FXML
@@ -43,11 +48,11 @@ public class MainViewController implements Initializable {
 	
 	@FXML
 	public void onMenuItemAboutAction() {
-		loadView("/gui/About.fxml");
+		loadView("/gui/About.fxml", x -> {});
 	}	
 	
 	//Metodo que carrega uma tela qualquer, recebendo o caminho do FXML referente a tela que ele irá abrir
-	private synchronized void loadView (String absoluteName) {
+	private synchronized <T> void loadView (String absoluteName, Consumer <T> initializingAction) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 			VBox newVBox = loader.load();
@@ -66,38 +71,15 @@ public class MainViewController implements Initializable {
 			mainVBox.getChildren().clear();
 			mainVBox.getChildren().add(mainMenu);
 			mainVBox.getChildren().addAll(newVBox.getChildren());
+
+			//essas duas linhas executam o que foi passado como ArrowFunction no parametro do metodo 
+			T controller = loader.getController();
+			initializingAction.accept(controller);
 			
 		} catch (IOException e) {	//a excecao lancada eh uma alerta, ao inves de parar a execucao do programa
 			Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
 		} 
 	}
-	
-	/*Metodo que carrega uma tela qualquer, recebendo o caminho do FXML referente a tela que ele irá abrir
-	 * Esse metodo, em especifico, trata de pegar os objetos do tipo Department contidos no TableView 
-	*/
-	private synchronized void loadView2 (String absoluteName) {
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
-			VBox newVBox = loader.load();
-			
-			Scene mainScene = Main.getMainScene();
-			
-			VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();
-			
-			Node mainMenu = mainVBox.getChildren().get(0);
-			mainVBox.getChildren().clear();
-			mainVBox.getChildren().add(mainMenu);
-			mainVBox.getChildren().addAll(newVBox.getChildren());
-			
-			DepartmentListController controller = loader.getController();
-			controller.setDepartmentService(new DepartmentService());
-			controller.updateTableView();
-			
-		} catch (IOException e) {	//a excecao lancada eh uma alerta, ao inves de parar a execucao do programa
-			Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
-		} 
-	}	
-	
 	
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
