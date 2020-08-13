@@ -15,7 +15,6 @@ public class DepartmentService {
 		return dao.findAll();		
 	}
 	
-	
 	public void saveOrUpdate(Department obj) {
 		//se o departamento nao existir
 		if (obj.getId() == null) {
@@ -24,5 +23,9 @@ public class DepartmentService {
 		else {
 			dao.update(obj);
 		}
+	}
+	
+	public void remove(Department obj) {
+		dao.delete(obj);
 	}
 }
